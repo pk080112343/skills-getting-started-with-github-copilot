@@ -1,50 +1,77 @@
 # Mergington High School Activities API
 
-A super simple FastAPI application that allows students to view and sign up for extracurricular activities.
+This project is a small FastAPI web application for managing extracurricular
+activities at Mergington High School. The backend exposes JSON endpoints, while
+the static frontend displays activity cards and provides signup and unregister
+controls.
 
-## Features
+## Features and functionality
 
-- View all available extracurricular activities
-- Sign up for activities
+| Feature | Description |
+| --- | --- |
+| Activity directory | Lists each activity's description, schedule, participant limit, and current availability. |
+| Activity signup | Registers a student's email for an existing activity. Duplicate registrations are rejected. |
+| Participant management | Displays signed-up participants on each activity card. |
+| Participant unregister | Removes a participant through the trash button next to their email. |
+| Live activity updates | Refreshes the activity cards after signup or unregister, so changes appear without a browser reload. |
+| Interactive API documentation | FastAPI provides Swagger UI at `/docs` and ReDoc at `/redoc`. |
+| Backend test suite | Pytest tests the activity, signup, duplicate-signup, and unregister behavior using AAA (Arrange-Act-Assert). |
 
-## Getting Started
+When new functionality is added, include a short description as a new row in
+this table.
 
-1. Install the dependencies:
+## Project structure
 
-   ```
-   pip install fastapi uvicorn
-   ```
+- `app.py`: FastAPI application, in-memory activity model, and API routes.
+- `static/index.html`: page structure for the activity directory and signup form.
+- `static/app.js`: loads activities, submits signups, and unregisters participants.
+- `static/styles.css`: visual styling for the page and activity cards.
+- `../tests/`: pytest backend tests.
 
-2. Run the application:
+## Getting started
 
-   ```
-   python app.py
-   ```
+From the repository root:
 
-3. Open your browser and go to:
-   - API documentation: http://localhost:8000/docs
-   - Alternative documentation: http://localhost:8000/redoc
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cd src
+uvicorn app:app --reload
+```
 
-## API Endpoints
+Open the application at http://localhost:8000/:
 
-| Method | Endpoint                                                          | Description                                                         |
-| ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
-| GET    | `/activities`                                                     | Get all activities with their details and current participant count |
-| POST   | `/activities/{activity_name}/signup?email=student@mergington.edu` | Sign up for an activity                                             |
+- `/`: activity directory and signup form
+- `/docs`: Swagger UI API documentation
+- `/redoc`: alternative ReDoc API documentation
 
-## Data Model
+Run the backend tests from the repository root:
 
-The application uses a simple data model with meaningful identifiers:
+```bash
+pytest tests -q
+```
 
-1. **Activities** - Uses activity name as identifier:
+## API endpoints
 
-   - Description
-   - Schedule
-   - Maximum number of participants allowed
-   - List of student emails who are signed up
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/activities` | Returns all activities and their current participant lists. |
+| POST | `/activities/{activity_name}/signup?email=student@mergington.edu` | Registers a participant; duplicate registrations return `400`. |
+| DELETE | `/activities/{activity_name}/unregister?email=student@mergington.edu` | Removes a participant; unknown participants return `404`. |
 
-2. **Students** - Uses email as identifier:
-   - Name
-   - Grade level
+## Data model and application logic
 
-All data is stored in memory, which means data will be reset when the server restarts.
+The application uses the `activities` dictionary in `app.py` as an in-memory
+data model. Each activity uses its name as the identifier and contains:
+
+- `description`: what students do in the activity.
+- `schedule`: when the activity meets.
+- `max_participants`: the enrollment limit used to calculate available spots.
+- `participants`: a list of signed-up student email addresses.
+
+The signup route first verifies that the activity exists and that the email is
+not already registered, then appends the email to `participants`. The
+unregister route verifies the activity and participant before removing the
+email. Because the model is in memory, all changes reset when the server
+restarts.

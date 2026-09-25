@@ -1,4 +1,186 @@
+# Mergington High School Activities API
+# Product Requirements Document (PRD) and Python dependencies
+#
+# This file intentionally contains both:
+#   1. pip-compatible dependency entries, and
+#   2. commented project documentation.
+#
+# The comments do not affect installation. Install the dependencies with:
+#   pip install -r requirements.txt
+
+###############################################################################
+# 1. Product overview
+###############################################################################
+#
+# Product name:
+#   Mergington High School Activities API
+#
+# Purpose:
+#   Provide a simple web application where students can browse extracurricular
+#   activities, register for an activity, and unregister when needed.
+#
+# Audience:
+#   Mergington High School students and staff using the activity directory.
+#
+# Current architecture:
+#   A FastAPI backend serves JSON endpoints and a static HTML/CSS/JavaScript
+#   frontend. Activity data is stored in memory in src/app.py.
+#
+# Persistence:
+#   There is currently no database. All participant changes are lost when the
+#   server restarts.
+
+###############################################################################
+# 2. Feature and functionality inventory
+###############################################################################
+#
+# | Status      | Feature                  | Description                         |
+# |-------------|--------------------------|-------------------------------------|
+# | Complete    | Activity directory       | Lists available activities, their   |
+# |             |                          | descriptions, schedules, capacity,  |
+# |             |                          | and remaining spots.                |
+# | Complete    | Activity signup          | Registers a student's email for an  |
+# |             |                          | existing activity.                  |
+# | Complete    | Duplicate prevention     | Rejects a signup when the same      |
+# |             |                          | email is already registered.        |
+# | Complete    | Participant display      | Shows current participants on each  |
+# |             |                          | activity card.                      |
+# | Complete    | Participant unregister   | Removes a participant with the      |
+# |             |                          | trash button next to their email.   |
+# | Complete    | Live card refresh        | Updates activity cards after signup |
+# |             |                          | or unregister without a browser     |
+# |             |                          | reload.                             |
+# | Complete    | API documentation        | Provides Swagger UI at /docs and    |
+# |             |                          | ReDoc at /redoc.                    |
+# | Complete    | Backend test suite       | Uses pytest and AAA (Arrange-Act-   |
+# |             |                          | Assert) tests for API behavior.     |
+# | Planned     | Persistent storage       | Preserve activities and signups     |
+# |             |                          | across application restarts.        |
+# | Planned     | Authentication           | Restrict participant-management     |
+# |             |                          | actions to authorized users.        |
+#
+# Project rule:
+#   Whenever a new functionality is implemented, add a short description as a
+#   new row in the feature table above and update the relevant API or behavior
+#   notes below.
+
+###############################################################################
+# 3. API contract
+###############################################################################
+#
+# GET /activities
+#   Returns all activities, including descriptions, schedules, participant
+#   limits, and current participant email lists.
+#
+# POST /activities/{activity_name}/signup?email=<email>
+#   Registers an email for an existing activity.
+#   Returns 200 on success, 400 for duplicate signup, and 404 when the
+#   activity does not exist.
+#
+# DELETE /activities/{activity_name}/unregister?email=<email>
+#   Removes an existing participant.
+#   Returns 200 on success, 404 when the activity or participant is missing.
+
+###############################################################################
+# 4. Data model and application logic
+###############################################################################
+#
+# Activities are represented by an in-memory Python dictionary:
+#
+#   activity name
+#     - description: activity summary
+#     - schedule: meeting time
+#     - max_participants: enrollment capacity
+#     - participants: list of student email addresses
+#
+# Signup logic:
+#   1. Validate that the activity exists.
+#   2. Validate that the email is not already registered.
+#   3. Append the email to the participant list.
+#
+# Unregister logic:
+#   1. Validate that the activity exists.
+#   2. Validate that the email is registered.
+#   3. Remove the email from the participant list.
+#
+# Frontend logic:
+#   1. Fetch activity data from GET /activities.
+#   2. Render an activity card for each activity.
+#   3. Submit signup requests from the form.
+#   4. Submit unregister requests from each participant's trash button.
+#   5. Re-fetch activities after a successful mutation so the UI stays current.
+
+###############################################################################
+# 5. Repository structure
+###############################################################################
+#
+# src/app.py                 FastAPI app, routes, and in-memory data model
+# src/static/index.html      Page structure and signup form
+# src/static/app.js          API calls and dynamic activity-card rendering
+# src/static/styles.css      Frontend layout and visual styling
+# tests/conftest.py          Shared pytest client and state-isolation fixture
+# tests/test_activities.py   Activity retrieval tests
+# tests/test_signup.py       Signup and duplicate-prevention tests
+# tests/test_unregister.py   Participant removal tests
+# src/README.md              Human-readable setup and API documentation
+
+###############################################################################
+# 6. Current progress
+###############################################################################
+#
+# Implemented:
+#   - FastAPI backend and static frontend
+#   - Activity listing
+#   - Signup and duplicate-signup validation
+#   - Participant list rendering
+#   - Unregister API and trash-button interaction
+#   - Live UI refresh after signup and unregister
+#   - AAA-structured pytest backend tests
+#
+# Validation:
+#   pytest tests -q
+#   Current result: 6 tests passed.
+#
+# Known limitation:
+#   Activity data is in memory only and resets whenever the server restarts.
+
+###############################################################################
+# 7. Local setup and operation
+###############################################################################
+#
+# From the repository root:
+#
+#   python -m venv .venv
+#   source .venv/bin/activate
+#   pip install -r requirements.txt
+#   cd src
+#   uvicorn app:app --reload
+#
+# Application:
+#   http://localhost:8000/
+#
+# API documentation:
+#   http://localhost:8000/docs
+#   http://localhost:8000/redoc
+#
+# Tests:
+#   pytest tests -q
+
+###############################################################################
+# 8. Installable dependencies
+###############################################################################
+
+# FastAPI provides the web framework, routing, validation, and API docs.
 fastapi
+
+# Uvicorn runs the FastAPI application as an ASGI server.
 uvicorn
+
+# HTTPX supports FastAPI's TestClient and HTTP client interactions in tests.
 httpx
+
+# Watchfiles enables automatic reload detection during local development.
 watchfiles
+
+# Pytest runs the backend test suite.
+pytest
